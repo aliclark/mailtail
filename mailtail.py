@@ -57,10 +57,17 @@ def filter_exists(updates, rv=None):
 
 def parse_headers(s):
     h = {}
+    curheader = None
     for line in s.splitlines():
+        if (len(line) > 0) and (line[0] in (' ', '\t')):
+            if not curheader:
+                log('invalid header start')
+                continue
+            h[curheader] += ' ' + line.lstrip()
         p = line.find(': ')
         if p != -1:
-            h[line[:p].upper()] = line[p+2:]
+            curheader = line[:p].upper()
+            h[curheader] = line[p+2:]
     return h
 
 def start_listening_bg(f, headersstr, task_queue):
