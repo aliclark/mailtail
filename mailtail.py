@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import datetime
 import time
 import sys
 import imapclient
@@ -32,7 +33,7 @@ def error(x):
     print(x, file=sys.stderr)
 
 def log(x):
-    print(x, file=sys.stderr)
+    print(datetime.datetime.now().strftime("%H:%M:%S")+'.'+str(round(time.time()%1, 3))[2:] + ": " + x, file=sys.stderr)
 
 def imap_connection_new():
     conn = imapclient.IMAPClient(config['server'], use_uid=False, ssl=True)
