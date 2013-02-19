@@ -147,9 +147,7 @@ def main():
 
     try:
         while True:
-            log('reading task in queue')
             obj = task_queue.get()
-            log('read from task in queue: ' + str(obj))
 
             if (type(obj) == tuple) and (len(obj) > 0):
                 t = obj[0]
