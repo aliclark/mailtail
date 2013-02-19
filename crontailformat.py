@@ -18,18 +18,22 @@ def doformat(folder, date, frm, subject):
             '\t' + frm + '\t' + subject + '\n')
 
 def main():
-    line = sys.stdin.readline()
-    m = re.compile('([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)\n')
-
-    while line:
-        r = m.match(line)
-
-        if r:
-            line = doformat(r.group(1), r.group(2), r.group(3), r.group(4))
-
-        print(line, end='')
-        sys.stdout.flush()
+    try:
         line = sys.stdin.readline()
+        m = re.compile('([^\t]+)\t([^\t]+)\t([^\t]+)\t([^\t]+)\n')
+
+        while line:
+            r = m.match(line)
+
+            if r:
+                line = doformat(r.group(1), r.group(2), r.group(3), r.group(4))
+
+            print(line, end='')
+            sys.stdout.flush()
+            line = sys.stdin.readline()
+
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == '__main__':
     main()
