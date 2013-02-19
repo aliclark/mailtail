@@ -78,22 +78,29 @@ def start_listening_bg(f, headersstr, task_queue):
     try:
         conn = imap_connection_new()
 
-        log('select folder: ' + f)
-        conn.select_folder(f)
+        log(f + ': select')
+        log(f + ': ' + str(conn.select_folder(f)))
 
         # reconnect in 29 mins time
         timeout_at = time.time() + (60 * 29)
-        conn.idle()
+        log(f + ': conn.idle()')
+        log(f + ': ' + str(conn.idle()))
         idling = True
 
         while True:
             tofetch = []
             # check for messages no longer than 29 mins at a time
-            filter_exists(conn.idle_check(timeout_at - time.time()), tofetch)
+            log(f + ': conn.idle_check()')
+            ic = conn.idle_check(timeout_at - time.time())
+            log(f + ': ' + str(ic))
+            filter_exists(ic, tofetch)
 
             # we might not need to do anything if eg. the update was just an expunge
             if tofetch or (time.time() >= timeout_at):
-                filter_exists(conn.idle_done(), tofetch)
+                log(f + ': conn.idle_done()')
+                ix = conn.idle_done()
+                log(f + ': ' + str(ix))
+                filter_exists(ix, tofetch)
                 idling = False
 
                 if tofetch:
@@ -101,15 +108,16 @@ def start_listening_bg(f, headersstr, task_queue):
 
                 # connect again with timeout in 29 mins time
                 timeout_at = time.time() + (60 * 29)
-                conn.idle()
+                log(f + ': conn.idle()')
+                log(f + ': ' + str(conn.idle()))
                 idling = True
 
     except KeyboardInterrupt:
-        log(f + ' listener shutting down')
+        log(f + ': listener shutting down')
         pass
 
     except Exception, e:
-        log('idle exception: ' + str(e))
+        log(f + ': idle exception: ' + str(e))
 
     finally:
         if idling:
