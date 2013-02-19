@@ -100,7 +100,7 @@ def start_listening_bg(f, headersstr, task_queue):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 log(f + ': ' + str(ix))
-                filter_exists(ix, tofetch)
+                filter_exists(ix[1], tofetch)
                 idling = False
 
                 if tofetch:
