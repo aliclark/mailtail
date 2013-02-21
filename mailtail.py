@@ -148,6 +148,7 @@ def main():
     try:
         while True:
             obj = task_queue.get()
+            log('got task: ' + str(obj))
 
             if (type(obj) == tuple) and (len(obj) > 0):
                 t = obj[0]
@@ -158,6 +159,7 @@ def main():
                 messages = map(lambda x: parse_headers(x[headersstr]), obj[2].values())
                 for m in messages:
                     line = '\t'.join([(m[h.upper()] if (h.upper() in m) else '') for h in headers])
+                    log('print: ' + line)
                     print(obj[1] + (('\t' + line) if line else ''))
                     sys.stdout.flush()
 
