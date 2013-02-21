@@ -78,7 +78,7 @@ def start_listening_bg(f, headersstr, task_queue):
     try:
         conn = imap_connection_new()
 
-        log(f + ': select')
+        log(f + ': conn.select_folder()')
         log(f + ': ' + str(conn.select_folder(f)))
 
         # reconnect in 29 mins time
@@ -90,7 +90,7 @@ def start_listening_bg(f, headersstr, task_queue):
         while True:
             tofetch = []
             # check for messages no longer than 29 mins at a time
-            log(f + ': conn.idle_check()')
+            log(f + ': conn.idle_check(' + str(timeout_at) + ' - ' + str(time.time()) + ')')
             ic = conn.idle_check(timeout_at - time.time())
             log(f + ': ' + str(ic))
             filter_exists(ic, tofetch)
