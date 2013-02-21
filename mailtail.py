@@ -104,7 +104,10 @@ def start_listening_bg(f, headersstr, task_queue):
                 idling = False
 
                 if tofetch:
-                    task_queue.put(('fetched', f, conn.fetch(tofetch, fetchtype)))
+                    log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
+                    cf = conn.fetch(tofetch, fetchtype)
+                    log(f + ': ' + str(cf))
+                    task_queue.put(('fetched', f, cf))
 
                 # connect again with timeout in 29 mins time
                 timeout_at = time.time() + (60 * 29)
