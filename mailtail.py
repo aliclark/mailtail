@@ -6,7 +6,7 @@ import datetime
 import time
 import sys
 import imapclient
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 from configobj import ConfigObj
 
 # Get a continuous stream of tab-separated email headers per line from mailboxes
@@ -71,8 +71,9 @@ def parse_headers(s):
             h[curheader] = line[p+2:]
     return h
 
-def start_listening_bg(f, headersstr, task_queue):
+def start_listening_bg(f, headers):
     idling = False
+    headersstr = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     fetchtype = [headersstr]
 
     try:
@@ -107,7 +108,13 @@ def start_listening_bg(f, headersstr, task_queue):
                     log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
-                    task_queue.put(('fetched', f, cf))
+
+                    messages = map(lambda x: parse_headers(x[headersstr]), cf.values())
+                    for m in messages:
+                        line = '\t'.join([(m[h.upper()] if (h.upper() in m) else '') for h in headers])
+                        log('print: ' + line)
+                        print(f + (('\t' + line) if line else ''))
+                        sys.stdout.flush()
 
                 # connect again with timeout in 29 mins time
                 timeout_at = time.time() + (60 * 29)
@@ -127,8 +134,8 @@ def start_listening_bg(f, headersstr, task_queue):
             conn.idle_done()
         imap_connection_close(conn)
 
-def start_listening(f, headersstr, task_queue):
-    p = Process(target=start_listening_bg, args=(f, headersstr, task_queue))
+def start_listening(f, headers):
+    p = Process(target=start_listening_bg, args=(f, headers))
     p.start()
     return p
 
@@ -141,36 +148,14 @@ def main():
 
     headersstr = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
 
-    task_queue = Queue()
-
     ls = []
 
     for f in mailboxes:
-        ls.append(start_listening(f, headersstr, task_queue))
+        ls.append(start_listening(f, headers))
 
     try:
-        while True:
-            obj = task_queue.get()
-            log('got task: ' + str(obj))
-
-            if (type(obj) == tuple) and (len(obj) > 0):
-                t = obj[0]
-            else:
-                t = None
-
-            if t == 'fetched':
-                messages = map(lambda x: parse_headers(x[headersstr]), obj[2].values())
-                for m in messages:
-                    line = '\t'.join([(m[h.upper()] if (h.upper() in m) else '') for h in headers])
-                    log('print: ' + line)
-                    print(obj[1] + (('\t' + line) if line else ''))
-                    sys.stdout.flush()
-
-            elif t == 'error':
-                error('error: ' + str(obj[1]))
-
-            else:
-                error('unknown object type: ' + str(obj))
+        for l in ls:
+            l.join()
 
     except KeyboardInterrupt:
         log('main thread shutting down')
