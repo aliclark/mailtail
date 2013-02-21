@@ -65,10 +65,11 @@ def parse_headers(s):
                 log('invalid header start')
                 continue
             h[curheader] += ' ' + line.lstrip()
-        p = line.find(': ')
-        if p != -1:
-            curheader = line[:p].upper()
-            h[curheader] = line[p+2:]
+        else:
+            p = line.find(': ')
+            if p != -1:
+                curheader = line[:p].upper()
+                h[curheader] = line[p+2:]
     return h
 
 def start_listening_bg(f, headers):
