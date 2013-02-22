@@ -86,8 +86,9 @@ def start_listening_bg(f, headers):
         # reconnect in 29 mins time
         timeout_at = time.time() + (60 * 29)
         log(f + ': conn.idle()')
-        log(f + ': ' + str(conn.idle()))
         idling = True
+        ci = conn.idle()
+        log(f + ': ' + str(ci))
 
         while True:
             tofetch = []
@@ -101,9 +102,9 @@ def start_listening_bg(f, headers):
             if tofetch or (time.time() >= timeout_at):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
+                idling = False
                 log(f + ': ' + str(ix))
                 filter_exists(ix[1], tofetch)
-                idling = False
 
                 if tofetch:
                     log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
@@ -120,8 +121,9 @@ def start_listening_bg(f, headers):
                 # connect again with timeout in 29 mins time
                 timeout_at = time.time() + (60 * 29)
                 log(f + ': conn.idle()')
-                log(f + ': ' + str(conn.idle()))
                 idling = True
+                ci = conn.idle()
+                log(f + ': ' + str(ci))
 
     except KeyboardInterrupt:
         log(f + ': listener shutting down')
