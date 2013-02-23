@@ -127,7 +127,6 @@ def start_listening_bg(f, headers):
 
     except KeyboardInterrupt:
         log(f + ': listener shutting down')
-        pass
 
     except Exception, e:
         log(f + ': idle exception: ' + str(e))
@@ -162,7 +161,6 @@ def main():
 
     except KeyboardInterrupt:
         log('main thread shutting down')
-        pass
 
     except Exception, e:
         error('exception: ' + str(e))
