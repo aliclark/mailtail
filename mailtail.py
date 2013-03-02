@@ -143,6 +143,11 @@ def start_listening(f, headers):
 
 def main():
     global config
+
+    if len(sys.argv) <= 1:
+        print('Please supply configuration file path as first argument', file=sys.stderr)
+        sys.exit(1)
+
     config = ConfigObj(sys.argv[1])
 
     headers = config['headers']
