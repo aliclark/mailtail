@@ -4,13 +4,6 @@ mailtail
 
 Get a continuous stream of tab-separated email headers from mailboxes
 
-behaviour
-=========
-
-Note that currently all messages seen via this script will be marked as read.
-In future I would like to make the default only be to peek at the message, with
-an option to mark as read.
-
 notes
 =====
 

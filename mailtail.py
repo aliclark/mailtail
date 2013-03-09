@@ -24,6 +24,7 @@ username = user.name@example.net
 password = s3cRetP4ss
 mailboxes = INBOX, # trailing comma is important!
 headers = date, from, subject
+use_peek = True # default is True
 
 """
 
@@ -72,16 +73,17 @@ def parse_headers(s):
                 h[curheader] = line[p+2:]
     return h
 
-def start_listening_bg(f, headers):
+def start_listening_bg(f, headers, use_peek):
     idling = False
-    headersstr = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
+    headersstr = 'BODY'+('.PEEK' if use_peek else '')+'[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
+    headersstrkey = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     fetchtype = [headersstr]
 
     try:
         conn = imap_connection_new()
 
-        log(f + ': conn.select_folder()')
-        log(f + ': ' + str(conn.select_folder(f)))
+        log(f + ': conn.select_folder(readonly='+str(use_peek)+')')
+        log(f + ': ' + str(conn.select_folder(f, readonly=use_peek)))
 
         # reconnect in 29 mins time
         timeout_at = time.time() + (60 * 29)
@@ -111,7 +113,7 @@ def start_listening_bg(f, headers):
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
 
-                    messages = map(lambda x: parse_headers(x[headersstr]), cf.values())
+                    messages = map(lambda x: parse_headers(x[headersstrkey]), cf.values())
                     for m in messages:
                         line = '\t'.join([(m[h.upper()] if (h.upper() in m) else '') for h in headers])
                         log('print: ' + line)
@@ -136,8 +138,8 @@ def start_listening_bg(f, headers):
             conn.idle_done()
         imap_connection_close(conn)
 
-def start_listening(f, headers):
-    p = Process(target=start_listening_bg, args=(f, headers))
+def start_listening(f, headers, use_peek):
+    p = Process(target=start_listening_bg, args=(f, headers, use_peek))
     p.start()
     return p
 
@@ -152,11 +154,15 @@ def main():
 
     headers = config['headers']
     mailboxes = config['mailboxes']
+    if 'use_peek' in config:
+        use_peek = config['use_peek'] != 'False'
+    else:
+        use_peek = True
 
     ls = []
 
     for f in mailboxes:
-        ls.append(start_listening(f, headers))
+        ls.append(start_listening(f, headers, use_peek))
 
     try:
         for l in ls:
