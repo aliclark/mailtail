@@ -153,8 +153,6 @@ def main():
     headers = config['headers']
     mailboxes = config['mailboxes']
 
-    headersstr = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
-
     ls = []
 
     for f in mailboxes:
