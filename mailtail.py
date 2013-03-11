@@ -113,7 +113,7 @@ def start_listening_bg(f, headers, use_peek):
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
 
-                    messages = map(lambda x: parse_headers(x[headersstrkey]), cf.values())
+                    messages = map(lambda x: parse_headers(x[headersstrkey]), [cf[m] for m in tofetch])
                     for m in messages:
                         line = '\t'.join([(m[h.upper()] if (h.upper() in m) else '') for h in headers])
                         log('print: ' + line)
