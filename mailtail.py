@@ -82,6 +82,10 @@ def start_listening_bg(f, headers, use_peek):
     try:
         conn = imap_connection_new()
 
+        if not conn.has_capability('IDLE'):
+            log(f + ': IDLE is not supported and polling not implemented, quitting')
+            return
+
         log(f + ': conn.select_folder(readonly='+str(use_peek)+')')
         log(f + ': ' + str(conn.select_folder(f, readonly=use_peek)))
 
