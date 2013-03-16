@@ -34,7 +34,7 @@ def error(x):
     print(x, file=sys.stderr)
 
 def log(x):
-    print(datetime.datetime.now().strftime("%H:%M:%S")+'.'+str(round(time.time()%1, 3))[2:] + ": " + x, file=sys.stderr)
+    print(datetime.datetime.now().strftime("%H:%M:%S")+'.'+str(round(time.time()%1, 3))[2:].ljust(3, '0') + ": " + x, file=sys.stderr)
 
 def imap_connection_new():
     conn = imapclient.IMAPClient(config['server'], use_uid=False, ssl=True)
