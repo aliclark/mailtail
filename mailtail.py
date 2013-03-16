@@ -48,14 +48,35 @@ def imap_connection_close(conn):
         except:
             pass
 
-def filter_exists(updates, rv=None):
-    if rv == None:
-        rv = []
+def expunge_update(f, ex, (tops, topu)):
+    if ex <= tops:
+        tops -= 1
+    if ex > topu:
+        log(f + ': eek, expunged an unknown mail')
+    else:
+        topu -= 1
+    return (tops, topu)
+
+def exists_update(f, ex, (tops, topu)):
+    if ex < topu:
+        log(f +': eek, mails unaccounted for')
+    topu = ex
+    if topu < tops:
+        log(f + ': eek, fixing up tops')
+        tops = topu
+    return (tops, topu)
+
+def run_updates(f, updates, (tops, topu)):
     if updates:
+        log(f + ': before ' + str((tops, topu)))
         for x in updates:
-            if (len(x) >= 2) and (x[1] == 'EXISTS'):
-                rv.append(x[0])
-    return rv
+            if len(x) >= 2:
+                if x[1] == 'EXISTS':
+                    (tops, topu) = exists_update(f, int(x[0]), (tops, topu))
+                elif x[1] == 'EXPUNGE':
+                    (tops, topu) = expunge_update(f, int(x[0]), (tops, topu))
+        log(f + ': after ' + str((tops, topu)))
+    return (tops, topu)
 
 def parse_headers(s):
     h = {}
@@ -83,7 +104,11 @@ def start_listening_bg(f, headers, use_peek):
         conn = imap_connection_new()
 
         log(f + ': conn.select_folder(readonly='+str(use_peek)+')')
-        log(f + ': ' + str(conn.select_folder(f, readonly=use_peek)))
+        csel = conn.select_folder(f, readonly=use_peek)
+        log(f + ': ' + str(csel))
+
+        tops = int(csel['EXISTS'])
+        topu = tops
 
         # reconnect in 29 mins time
         timeout_at = time.time() + (60 * 29)
@@ -93,22 +118,22 @@ def start_listening_bg(f, headers, use_peek):
         log(f + ': ' + str(ci))
 
         while True:
-            tofetch = []
             # check for messages no longer than 29 mins at a time
             log(f + ': conn.idle_check(' + str(timeout_at) + ' - ' + str(time.time()) + ')')
             ic = conn.idle_check(timeout_at - time.time())
             log(f + ': ' + str(ic))
-            filter_exists(ic, tofetch)
+            (tops, topu) = run_updates(f, ic, (tops, topu))
 
             # we might not need to do anything if eg. the update was just an expunge
-            if tofetch or (time.time() >= timeout_at):
+            if (topu > tops) or (time.time() >= timeout_at):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 idling = False
                 log(f + ': ' + str(ix))
-                filter_exists(ix[1], tofetch)
+                (tops, topu) = run_updates(f, ix[1], (tops, topu))
 
-                if tofetch:
+                if topu > tops:
+                    tofetch = range(tops + 1, topu + 1)
                     log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
@@ -119,6 +144,8 @@ def start_listening_bg(f, headers, use_peek):
                         log('print: ' + line)
                         print(f + (('\t' + line) if line else ''))
                         sys.stdout.flush()
+
+                    tops = topu
 
                 # connect again with timeout in 29 mins time
                 timeout_at = time.time() + (60 * 29)
