@@ -82,10 +82,6 @@ def start_listening_bg(f, headers, use_peek):
     try:
         conn = imap_connection_new()
 
-        if not conn.has_capability('IDLE'):
-            log(f + ': IDLE is not supported and polling not implemented, quitting')
-            return
-
         log(f + ': conn.select_folder(readonly='+str(use_peek)+')')
         log(f + ': ' + str(conn.select_folder(f, readonly=use_peek)))
 
@@ -163,20 +159,33 @@ def main():
     else:
         use_peek = True
 
-    ls = []
+    # Test for idle
+    conn = imap_connection_new()
+    hasidle = conn.has_capability('IDLE')
+    imap_connection_close(conn)
 
-    for f in mailboxes:
-        ls.append(start_listening(f, headers, use_peek))
+    if hasidle:
+        ls = []
 
-    try:
-        for l in ls:
-            l.join()
+        for f in mailboxes:
+            ls.append(start_listening(f, headers, use_peek))
 
-    except KeyboardInterrupt:
-        log('main thread shutting down')
+        try:
+            for l in ls:
+                l.join()
 
-    except Exception, e:
-        error('exception: ' + str(e))
+        except KeyboardInterrupt:
+            log('main thread shutting down')
+
+        except Exception, e:
+            error('exception: ' + str(e))
+
+    else:
+        # If the server does not advertise the IDLE capability, the
+        # client MUST NOT use the IDLE command and must poll for
+        # mailbox updates.
+        # FIXME: implement polling using a single connection
+        log(f + ': IDLE is not supported and polling not implemented, quitting')
 
 if __name__ == '__main__':
     main()
