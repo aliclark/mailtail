@@ -5,7 +5,7 @@ from __future__ import print_function
 import sys
 import re
 import datetime
-import time
+import calendar
 
 bad_dom = re.compile(r'([a-zA-Z]{3})(, )([1-9])( )([a-zA-Z]{3})(.*)')
 
@@ -21,7 +21,7 @@ def tomillistamp(ids):
 
     secshift = ((int(ds[26] + ds[27:29]) * 60) + int(ds[26] + ds[29:31])) * 60
     dt = datetime.datetime.strptime(ds[:25], '%a, %d %b %Y %H:%M:%S')
-    return str(int(round(time.mktime(dt.timetuple())) - secshift) * 1000)
+    return str(int(round(calendar.timegm(dt.timetuple())) - secshift) * 1000)
 
 def doformat(folder, date, frm, subject):
     return ('.'.join(folder.split('.')[-2:]) + '\t' + tomillistamp(date) +
