@@ -9,21 +9,27 @@ dependencies
 
 The imapclient Python library is needed, this can be installed with:
 
+```sh
 sudo apt-get install python-pip
 sudo easy_install imapclient
+```
 
 run
 ===
 
 Edit the config file and supply it as the first argument to the script:
 
+```sh
 ./mailtail.py mailtail.conf
+```
 
 The output can be converted into "base" format, which is compatible
 with that accepted by the scripts in
 https://github.com/aliclark/irctail
 
+```sh
 ./mailtail.py mailtail.conf | ./mailtail-to-base.py
+```
 
 notes
 =====
