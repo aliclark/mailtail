@@ -4,6 +4,21 @@ mailtail
 
 Get a continuous stream of tab-separated email headers from mailboxes
 
+dependencies
+============
+
+The imapclient Python library is needed, this can be installed with:
+
+sudo apt-get install python-pip
+sudo easy_install imapclient
+
+run
+===
+
+Edit the config file and supply it as the first argument to the script:
+
+./mailtail.py mailtail.conf
+
 notes
 =====
 
@@ -16,4 +31,3 @@ only, however.
 
 If you have been able to make those patches, please let me know so I can update
 this readme :)
-
