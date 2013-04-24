@@ -19,6 +19,12 @@ Edit the config file and supply it as the first argument to the script:
 
 ./mailtail.py mailtail.conf
 
+The output can be converted into "base" format, which is compatible
+with that accepted by the scripts in
+https://github.com/aliclark/irctail
+
+./mailtail.py mailtail.conf | ./mailtail-to-base.py
+
 notes
 =====
 
