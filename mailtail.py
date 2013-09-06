@@ -109,6 +109,7 @@ def parse_headers(s):
     return h
 
 def start_listening_bg(f, headers, use_peek):
+    conn = None
     idling = False
     headersstr = 'BODY'+('.PEEK' if use_peek else '')+'[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     headersstrkey = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
@@ -177,7 +178,8 @@ def start_listening_bg(f, headers, use_peek):
     finally:
         if idling:
             conn.idle_done()
-        imap_connection_close(conn)
+        if conn:
+            imap_connection_close(conn)
 
 def start_listening(f, headers, use_peek):
     p = Process(target=start_listening_bg, args=(f, headers, use_peek))
