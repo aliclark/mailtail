@@ -12,6 +12,7 @@ The imapclient Python library is needed, this can be installed with:
 ```sh
 sudo apt-get install python-pip
 sudo easy_install imapclient
+sudo easy_install configobj
 ```
 
 run
