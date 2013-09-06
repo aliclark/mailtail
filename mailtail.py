@@ -211,11 +211,20 @@ def main():
         ls = []
 
         for f in mailboxes:
-            ls.append(start_listening(f, headers, use_peek))
+            ls.append((f, start_listening(f, headers, use_peek)))
 
         try:
-            for l in ls:
-                l.join()
+            # If for some reason the processes die, restart them
+            while True:
+                for item in ls[:]:
+                    (f, l) = item
+                    if not l.is_alive():
+                        l.terminate()
+                        l.join(1)
+                        ls.remove(item)
+                        ls.append((f, start_listening(f, headers, use_peek)))
+
+                time.sleep(1)
 
         except KeyboardInterrupt:
             log('main thread shutting down')
