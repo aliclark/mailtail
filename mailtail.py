@@ -174,6 +174,9 @@ def start_listening_bg(f, headers, use_peek):
                 ci = conn.idle()
                 log(f + ': ' + str(ci))
 
+                # no need to recheck more frequently than once a second
+                time.sleep(1)
+
     except KeyboardInterrupt:
         log(f + ': listener shutting down')
 
