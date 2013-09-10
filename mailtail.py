@@ -22,6 +22,7 @@ import sys
 import imapclient
 from multiprocessing import Process
 from configobj import ConfigObj
+import getpass
 
 # Get a continuous stream of tab-separated email headers per line from mailboxes
 
@@ -43,6 +44,7 @@ use_peek = True # default is True
 """
 
 config = None
+password = None
 
 def error(x):
     print(x, file=sys.stderr)
@@ -52,7 +54,7 @@ def log(x):
 
 def imap_connection_new():
     conn = imapclient.IMAPClient(config['server'], use_uid=False, ssl=True)
-    conn.login(config['username'], config['password'])
+    conn.login(config['username'], password)
     return conn
 
 def imap_connection_close(conn):
@@ -195,13 +197,18 @@ def start_listening(f, headers, use_peek):
     return p
 
 def main():
-    global config
+    global config, password
 
     if len(sys.argv) <= 1:
         print('Please supply configuration file path as first argument', file=sys.stderr)
         sys.exit(1)
 
     config = ConfigObj(sys.argv[1])
+
+    if 'password' in config:
+        password = config['password']
+    else:
+        password = getpass.getpass()
 
     headers = config['headers']
     mailboxes = config['mailboxes']
