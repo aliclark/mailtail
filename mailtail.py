@@ -137,10 +137,15 @@ def start_listening_bg(f, headers, use_peek):
             log(f + ': conn.idle_check(' + str(timeout_at) + ' - ' + str(time.time()) + ')')
             ic = conn.idle_check(timeout_at - time.time())
             log(f + ': ' + str(ic))
+            topsprev = tops
+            topuprev = topu
             (tops, topu) = run_updates(f, ic, (tops, topu))
 
             # we might not need to do anything if eg. the update was just an expunge
-            if (topu > tops) or (time.time() >= timeout_at):
+            # topsprev and so on represents a check for unknown
+            # idle_check termination, in which case we terminate IDLE
+            # and restart it
+            if (topu > tops) or (time.time() >= timeout_at) or ((topsprev == tops) and (topuprev == topu)):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 idling = False
