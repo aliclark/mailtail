@@ -232,6 +232,8 @@ def main():
                         ls.remove(item)
                         ls.append((f, start_listening(f, headers, use_peek)))
 
+                # in the worst case this will retry all listeners once
+                # a second, may need to back off if that's the case
                 time.sleep(1)
 
         except KeyboardInterrupt:
