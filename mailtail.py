@@ -23,6 +23,7 @@ import imapclient
 from multiprocessing import Process
 from configobj import ConfigObj
 import getpass
+import email.header
 
 # Get a continuous stream of tab-separated email headers per line from mailboxes
 
@@ -108,6 +109,10 @@ def parse_headers(s):
             if p != -1:
                 curheader = line[:p].upper()
                 h[curheader] = line[p+2:]
+
+    for item in h:
+        h[item] = email.header.decode_header(h[item])[0][0]
+
     return h
 
 def start_listening_bg(f, headers, use_peek):
