@@ -99,16 +99,17 @@ def parse_headers(s):
     h = {}
     curheader = None
     for line in s.splitlines():
-        if (len(line) > 0) and (line[0] in (' ', '\t')):
-            if not curheader:
-                log('invalid header start')
-                continue
-            h[curheader] += ' ' + line.lstrip()
-        else:
+        startspace = (len(line) > 0) and (line[0] in (' ', '\t'))
+        # do we start parsing a new header?
+        if (not curheader) or (not startspace):
             p = line.find(': ')
-            if p != -1:
-                curheader = line[:p].upper()
-                h[curheader] = line[p+2:]
+            if p == -1:
+                log('ERR could not parse header from line: ' + line)
+                continue
+            curheader = line[:p].upper()
+            h[curheader] = line[p+2:]
+        elif startspace:
+            h[curheader] += ' ' + line.lstrip()
 
     for item in h:
         h[item] = email.header.decode_header(h[item])[0][0]
