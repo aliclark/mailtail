@@ -99,6 +99,8 @@ def parse_headers(s):
     h = {}
     curheader = None
     for line in s.splitlines():
+        if len(line) == 0:
+            continue
         startspace = (len(line) > 0) and (line[0] in (' ', '\t'))
         # do we start parsing a new header?
         if (not curheader) or (not startspace):
