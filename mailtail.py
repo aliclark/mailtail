@@ -124,6 +124,7 @@ def start_listening_bg(f, headers, use_peek):
     headersstr = 'BODY'+('.PEEK' if use_peek else '')+'[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     headersstrkey = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     fetchtype = [headersstr]
+    last_fetch = 0
 
     try:
         conn = imap_connection_new()
@@ -156,6 +157,26 @@ def start_listening_bg(f, headers, use_peek):
             # idle_check termination, in which case we terminate IDLE
             # and restart it
             if (topu > tops) or (time.time() >= timeout_at) or ((topsprev == tops) and (topuprev == topu)):
+
+                timeout_at = last_fetch + 1
+
+                # if we last fetched less than a second ago, idle some
+                # more before fetching again, as a basic rate limiting
+                now = time.time()
+                while timeout_at > now:
+                    if (topsprev == tops) and (topuprev == topu):
+                        # assume something went wrong, just sleep out
+                        # the time. We do still want this
+                        # rate-limiting to prevent tight looped idle()
+                        # calls
+                        time.sleep(timeout_at - now)
+                    else:
+                        log(f + ': conn.idle_check(' + str(timeout_at) + ' - ' + str(now) + ')')
+                        ic = conn.idle_check(timeout_at - now)
+                        log(f + ': ' + str(ic))
+                        (tops, topu) = run_updates(f, ic, (tops, topu))
+                    now = time.time()
+
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 idling = False
@@ -167,6 +188,7 @@ def start_listening_bg(f, headers, use_peek):
                     log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
+                    last_fetch = time.time()
 
                     messages = map(lambda x: parse_headers(x[headersstrkey]), [cf[m] for m in tofetch])
                     for m in messages:
