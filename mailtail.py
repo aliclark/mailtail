@@ -180,6 +180,7 @@ def start_listening_bg(f, headers, use_peek):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 idling = False
+                last_fetch = time.time()
                 log(f + ': ' + str(ix))
                 (tops, topu) = run_updates(f, ix[1], (tops, topu))
 
@@ -188,7 +189,6 @@ def start_listening_bg(f, headers, use_peek):
                     log(f + ': conn.fetch(' + str(tofetch) + ', ' + str(fetchtype) + ')')
                     cf = conn.fetch(tofetch, fetchtype)
                     log(f + ': ' + str(cf))
-                    last_fetch = time.time()
 
                     messages = map(lambda x: parse_headers(x[headersstrkey]), [cf[m] for m in tofetch])
                     for m in messages:
