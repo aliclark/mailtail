@@ -124,7 +124,7 @@ def start_listening_bg(f, headers, use_peek):
     headersstr = 'BODY'+('.PEEK' if use_peek else '')+'[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     headersstrkey = 'BODY[HEADER.FIELDS (' + ' '.join(map(lambda x: x.upper(), headers)) + ')]'
     fetchtype = [headersstr]
-    last_fetch = 0
+    last_dis = 0
 
     try:
         conn = imap_connection_new()
@@ -158,7 +158,7 @@ def start_listening_bg(f, headers, use_peek):
             # and restart it
             if (topu > tops) or (time.time() >= timeout_at) or ((topsprev == tops) and (topuprev == topu)):
 
-                timeout_at = last_fetch + 1
+                timeout_at = last_dis + 1
 
                 # if we last fetched less than a second ago, idle some
                 # more before fetching again, as a basic rate limiting
@@ -180,7 +180,7 @@ def start_listening_bg(f, headers, use_peek):
                 log(f + ': conn.idle_done()')
                 ix = conn.idle_done()
                 idling = False
-                last_fetch = time.time()
+                last_dis = time.time()
                 log(f + ': ' + str(ix))
                 (tops, topu) = run_updates(f, ix[1], (tops, topu))
 
